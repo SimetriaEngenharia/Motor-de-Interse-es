@@ -6,7 +6,28 @@ Registro que atravessa o zip. **Quem trabalhar, atualiza aqui antes de exportar.
 
 ## Rodada atual
 
-### Tipo Alça — v5: a alça É o entroncamento, por subtração (mais recente)
+### Tipo Alça — v5.1: Continuidade do eixo e do bordo externo (mais recente)
+
+Fechado e implementado o primeiro passo da alça: **continuidade do eixo e do bordo externo**.
+
+1. **O eixo do ramo NÃO é aposentado nem ocultado**:
+   - O alinhamento do ramo (`alignId`) permanece ativo (`activeAlignmentId: alignId`), visível na camada `layer-eixo`, com estacas, perfil longitudinal e pontos de inflexão (PIs) navegáveis pelo campo.
+   - O corredor do ramo (`corrGalho`) NÃO é deletado: ele é preservado em `state.corridors` e gera a seção transversal (pista, acostamentos e taludes) ao longo de toda a extensão do ramo até o campo.
+
+2. **Descarte do quadrante morto na raiz**:
+   - Em `rebuildIntersectionCorridors`, `intEdges` e `intEdgesBase` filtram o quadrante oposto pelo `tokenVivo` (`M-Back` para saída, `M-Fwd` para entrada).
+   - O quadrante morto não gera fillete, não gera alinhamento espúrio e não gera faixa adicional no sentido contrário (saída gera apenas desaceleração; entrada gera apenas aceleração).
+
+3. **Continuidade total do bordo externo**:
+   - Em `buildAccelDecelLine`, a faixa adicional da principal estende-se até `int.mainStation` (`sta3 = int.mainStation`), onde o nó da principal encontra o início do ramo.
+   - Na região do corredor do ramo, `firstReg.startStation = 0`, conectando o bordo externo do ramo diretamente com o bordo da faixa de aceleração/desaceleração da principal, eliminando o vazio geométrico que antes existia entre o fillete e o início do corredor.
+   - O bordo externo segue contínuo com largura plena ao longo de todo o ramo.
+
+**Em aberto, para o próximo passo:**
+(a) O NF único no gore do quadrante vivo (harmonização final do zebrado e cap do nariz físico);
+(b) Calibração fina de transição do bordo interno junto ao início da cunha.
+
+### Tipo Alça — v5: a alça É o entroncamento, por subtração
 
 Modelo fechado com o projetista, e é o certo: **a alça é o entroncamento inteiro, menos um
 ramo.** O eixo do ramo da alça não se sintetiza — ele NASCE da máquina, como alinhamento

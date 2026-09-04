@@ -2877,56 +2877,24 @@ export const useStore = create<ComposerState>()(
      * frente — quadrante M-Fwd. Vale para galho à direita e à esquerda: o
      * espelhamento troca o giro, não o par de braços.
      *
-     * APOSENTAR, NÃO APAGAR. Os quadrantes e os filletes são derivados do eixo
-     * central, e o rebuild o consome em cada passagem — apagar orfanaria a
-     * interseção inteira. Ele fica oculto, na camada auxiliar, SEM corredor:
-     * desaparece da planta e da barra de eixos, continua sendo o esqueleto.
-     * `isHidden` só governa desenho e listagem; o rebuild acha o ramo por id. */
+     * MANTER O EIXO E O CORREDOR DA ALÇA CONTÍNUOS.
+     * O eixo da alça (alignId) é o próprio eixo do ramo projetado pelo usuário,
+     * que continua pelo campo com toda a sua extensão, perfil e estacas.
+     * O corredor da alça é mantido ativo e visível, gerando o pavimento e bordo externo.
+     * Na interseção, apenas o quadrante vivo é gerado (M-Back para saída, M-Fwd para entrada). */
     if (ehAlca) {
-      const tokenVivo = p.sentido === "entrada" ? "M-Fwd" : "M-Back";
       const ladoVivo = p.sentido === "entrada" ? "right" : "left";
       const W = p.largura ?? FAIXA_ADICIONAL_W;
 
-      const quad = get().alignments.find(
-        (a: any) =>
-          a.id.startsWith(`align-${intId}-`) &&
-          a.id.includes("B-Arm") &&
-          a.id.includes(tokenVivo),
+      get().updateIntersection(
+        intId,
+        ladoVivo === "left" ? { leftBranchWidth: W } : { rightBranchWidth: W },
+        { noRebuild: true },
       );
-
-      if (quad) {
-        try {
-          const ramo: any = createOffsetAlignment(quad as any, -W, `${nome} · Ramo`);
-          ramo.id = `align-${intId}-offset-${ladoVivo}`;
-          ramo.layerId = "layer-auxiliar";
-          ramo.parentId = quad.id;
-          ramo.offsetValue = -W;
-          get().setAlignments([...get().alignments, ramo]);
-          get().updateIntersection(
-            intId,
-            ladoVivo === "left" ? { leftBranchWidth: W } : { rightBranchWidth: W },
-            { noRebuild: true },
-          );
-        } catch (err) {
-          console.error("alça: falha ao separar o ramo sobrevivente", err);
-        }
-      } else {
-        console.warn(`alça: quadrante ${tokenVivo} não encontrado — ficou entroncamento`);
-      }
-
-      /* Aposentadoria do eixo central. */
-      const semCorredor = get().corridors.filter((c) => c.alignmentId !== alignId);
-      const eixosOcultos = get().alignments.map((a: any) => {
-        if (a.id !== alignId) return a;
-        a.isHidden = true;
-        a.layerId = "layer-auxiliar";
-        return a;
-      });
-      set({ corridors: semCorredor, alignments: eixosOcultos });
       get().rebuildIntersectionCorridors(intId);
     }
 
-    set({ activeAlignmentId: ehAlca ? null : alignId });
+    set({ activeAlignmentId: alignId });
     return intId;
   },
 
@@ -3457,6 +3425,9 @@ export const useStore = create<ComposerState>()(
         : { x: -branchUnitDir.x, y: -branchUnitDir.y },
     });
 
+    const ehAlca = int.galho?.topologia === "alca";
+    const tokenVivo = int.galho?.sentido === "entrada" ? "M-Fwd" : "M-Back";
+
     /* GEOMETRIA DA FAIXA ADICIONAL, em estacas da principal. Uma descrição só,
      * consumida tanto pelo bordo de apoio como por buildAccelDecelLine. */
     const ladoAccel = (side: 1 | -1) => {
@@ -3847,6 +3818,14 @@ export const useStore = create<ComposerState>()(
 
       intEdges = mapEdges(res.edges);
       intEdgesBase = mapEdges(resBase.edges);
+
+      /* Na alça existe apenas um quadrante (o lado vivo: M-Back para saída, M-Fwd para entrada).
+       * O quadrante oposto (braço morto) é descartado aqui para que não gere fillete, alinhamento
+       * nem faixa adicional espúria. */
+      if (ehAlca) {
+        intEdges = intEdges.filter((e) => e.id.includes(tokenVivo));
+        intEdgesBase = intEdgesBase.filter((e) => e.id.includes(tokenVivo));
+      }
 
       /* CONCORDÂNCIA COM O BORDO REAL DA PRINCIPAL.
        *
@@ -4556,9 +4535,14 @@ export const useStore = create<ComposerState>()(
           };
 
 
-          const sta3 = staTang;
-          const sta2 = staTang + sideMultiplier * L;
-          const sta1 = staTang + sideMultiplier * (L + T);
+          let sta3 = staTang;
+          if (ehAlca) {
+            // Na alça, a faixa adicional no bordo externo estende-se até o nó da principal (int.mainStation),
+            // onde o corredor do ramo assume e garante continuidade absoluta do bordo externo.
+            sta3 = int.mainStation;
+          }
+          const sta2 = sta3 + sideMultiplier * L;
+          const sta1 = sta3 + sideMultiplier * (L + T);
 
           const algId = `align-${int.id}-accel-${sideMultiplier < 0 ? "back" : "fwd"}`;
 
@@ -4756,7 +4740,9 @@ export const useStore = create<ComposerState>()(
             maxSta = Math.max(...branchTangents.map((t) => t.sta));
           }
 
-          if (maxSta - minSta > 0.1) {
+          if (ehAlca) {
+            firstReg.startStation = 0;
+          } else if (maxSta - minSta > 0.1) {
             firstReg.startStation = maxSta;
           } else {
             firstReg.startStation = maxSta;
@@ -4792,7 +4778,9 @@ export const useStore = create<ComposerState>()(
             maxSta = Math.max(...branchTangents.map((t) => t.sta));
           }
 
-          if (maxSta - minSta > 0.1) {
+          if (ehAlca) {
+            lastReg.endStation = branchAlign.length;
+          } else if (maxSta - minSta > 0.1) {
             lastReg.endStation = minSta;
           } else {
             lastReg.endStation = minSta;
