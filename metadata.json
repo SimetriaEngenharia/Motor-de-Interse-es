@@ -1,0 +1,8 @@
+{
+  "name": "Simetria",
+  "description": "Projeto geométrico rodoviário paramétrico: traçado horizontal e vertical, superelevação, seções tipo, interseções com narizes físicos e produção de pranchas em PDF/DXF.",
+  "entrypoint": "index.html",
+  "source": "app/src",
+  "requestFramePermissions": [],
+  "prompt": "PARE E LEIA ANTES DE GERAR QUALQUER CÓDIGO. Este projeto NÃO é um pedido novo — é um app React 19 + TypeScript + Vite já construído, grande e em desenvolvimento ativo, que acabou de chegar de outro ambiente. Sua primeira e única tarefa agora é LER, nesta ordem, os arquivos da raiz: GEMINI.md, AGENTS.md e HANDOFF.md. Eles são o contrato e o estado atual. Não crie index.tsx, não crie App.tsx na raiz, não mova nem recrie app/src, não reescreva store.ts nem app/src/lib/intersection.ts — são milhares de linhas de geometria rodoviária calibrada em campo, e regenerar destrói meses de ajuste fino. Não troque as versões fixadas (React 19.1, Tailwind v4.1, three 0.184). Rode npm install e npm run dev, confirme que subiu em localhost:3000, e então me diga em poucas linhas o que você entendeu do estado atual e da pendência descrita no HANDOFF.md. Depois espere minha instrução. Regra de ouro para o resto da sessão: se você criar, renomear ou apagar qualquer arquivo dentro de app/src, rode npm run sync no mesmo passo — sem isso o app abre em branco do outro lado da viagem."
+}

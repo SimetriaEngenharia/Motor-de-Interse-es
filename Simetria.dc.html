@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta charset="UTF-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  a { color: #1e40af; }
+  a:hover { color: #ea580c; }
+</style>
+<script src="app/loader.js"></script>
+</helmet>
+<div style="position:relative;width:100vw;height:100vh;overflow:hidden;background:#f8fafc;font-family:Inter,sans-serif">
+  <div id="root" style="width:100%;height:100%"></div>
+  <div style="{{ overlayStyle }}">
+    <img src="public/logo.png" alt="Simetria" style="height:46px;width:auto;object-fit:contain" />
+    <div style="font-size:15px;color:#0f172a">{{ status }}</div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { status: 'Iniciando…', done: false, error: null };
+  componentDidMount() {
+    if (this._booted) return;
+    this._booted = true;
+    const start = () => {
+      if (!window.SimetriaApp) return setTimeout(start, 60);
+      window.SimetriaApp.boot((s) => this.setState({ status: s }))
+        .then(() => this.setState({ done: true }))
+        .catch((e) => {
+          console.error(e);
+          this.setState({ error: String(e.message || e), status: 'Erro: ' + (e.message || e) });
+        });
+    };
+    start();
+  }
+  renderVals() {
+    const hidden = this.state.done && !this.state.error;
+    return {
+      status: this.state.status,
+      overlayStyle: 'position:absolute;inset:0;display:' + (hidden ? 'none' : 'flex') +
+        ';flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#f8fafc;' +
+        'text-align:center;padding:24px;pointer-events:' + (hidden ? 'none' : 'auto'),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
