@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.API_KEY || ''),
     },
-    server: { host: true, port: 3000 },
+    server: { host: true, port: 3000, allowedHosts: true },
     build: { outDir: 'dist', chunkSizeWarningLimit: 2500 },
   };
 });
