@@ -4766,7 +4766,7 @@ export function ProductionStudio() {
                   </p>
                 ) : (
                   bases.map((b: any) => {
-                    const n = Object.values(b.members || {}).reduce((a: number, v: any) => a + (Array.isArray(v) ? v.length : 0), 0);
+                    const n: number = (Object.values(b.members || {}) as any[]).reduce((a: number, v: any) => a + (Array.isArray(v) ? v.length : 0), 0);
                     return (
                       <label key={b.id} className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded px-2.5 py-2 cursor-pointer hover:border-slate-600">
                         <input

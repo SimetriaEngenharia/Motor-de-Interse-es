@@ -2063,7 +2063,7 @@ const peNaPoliFB = (pts: Pt2[], q: Pt2) => {
   return { ...p, ux: (b.x - a.x) / l, uy: (b.y - a.y) / l };
 };
 
-const cruzaSegSegFB = (A: Pt, B: Pt, C: Pt, D: Pt2): Pt2 | null => {
+const cruzaSegSegFB = (A: Pt2, B: Pt2, C: Pt2, D: Pt2): Pt2 | null => {
   const r = { x: B.x - A.x, y: B.y - A.y };
   const s = { x: D.x - C.x, y: D.y - C.y };
   const den = r.x * s.y - r.y * s.x;
@@ -2076,7 +2076,7 @@ const cruzaSegSegFB = (A: Pt, B: Pt, C: Pt, D: Pt2): Pt2 | null => {
 
 /** Segmentos do offset R de uma polilinha, do lado pedido. */
 const offSegsFB = (pts: Pt2[], sinal: number, R: number) => {
-  const segs: { A: Pt; B: Pt }[] = [];
+  const segs: { A: Pt2; B: Pt2 }[] = [];
   for (let i = 0; i < pts.length - 1; i++) {
     const a = pts[i];
     const b = pts[i + 1];
@@ -2148,7 +2148,7 @@ export const casarFilleteComBordos = (
   /* NEWTON GEOMÉTRICO — os offsets podem não se cruzar dentro do trecho
    * recortado (bordo curto, quina, offset auto-interceptado). Aí caminha sobre
    * o offset do ramo até a distância ao bordo da principal valer R. */
-  const refina = (partida: Pt, iters: number) => {
+  const refina = (partida: Pt2, iters: number) => {
     let c = { x: partida.x, y: partida.y };
     for (let k = 0; k < iters; k++) {
       const pr = peB(c);
@@ -2211,7 +2211,7 @@ export const casarFilleteComBordos = (
 /** Qual bordo de ramo este quadrante encosta: o mais próximo da tangência. */
 export const escolherBordoRamo = (
   cands: (Pt2[] | undefined | null)[],
-  perto: Pt,
+  perto: Pt2,
 ): Pt2[] | null => {
   const bons = cands.filter((p) => p && p.length >= 2) as Pt2[][];
   if (bons.length === 0) return null;

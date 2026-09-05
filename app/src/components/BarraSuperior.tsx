@@ -48,7 +48,7 @@ function Botao({
   rotulo, icone: Icone, onClick, ativo, desativado, titulo,
 }: {
   rotulo: string;
-  icone: React.ElementType;
+  icone: React.ComponentType<{ size?: number; className?: string }>;
   onClick?: () => void;
   ativo?: boolean;
   desativado?: boolean;
@@ -135,7 +135,7 @@ function BotaoDesenho({
   rotulo, icone: Icone, foco, ativo, desativado, onClick, titulo,
 }: {
   rotulo: string;
-  icone: React.ElementType;
+  icone: React.ComponentType<{ size?: number; className?: string }>;
   foco: "ponto" | "linha" | "circulo";
   ativo?: boolean;
   desativado?: boolean;
@@ -190,7 +190,7 @@ function BotaoMenu({
   rotulo, icone: Icone, desativado, largura = 224, children,
 }: {
   rotulo: string;
-  icone: React.ElementType;
+  icone: React.ComponentType<{ size?: number; className?: string }>;
   desativado?: boolean;
   largura?: number;
   children: (fechar: () => void) => React.ReactNode;
@@ -227,7 +227,7 @@ function ItemMenu({
   rotulo, icone: Icone, onClick, ativo, cor, desativado,
 }: {
   rotulo: string;
-  icone: React.ElementType;
+  icone: React.ComponentType<{ size?: number; className?: string }>;
   onClick: () => void;
   ativo?: boolean;
   cor?: string;
@@ -731,10 +731,12 @@ export function BarraSuperior() {
                   const s = useStore.getState();
                   s.empilharZoom();
                   const t = s.planView2DTransform;
-                  const d = s.planViewDimensions || { width: 0, height: 0 };
+                  const d: any = s.planViewDimensions || { w: 0, h: 0 };
                   // Mantém no centro da tela o mesmo ponto do terreno que já estava lá.
-                  const cx = d.width / 2;
-                  const cy = d.height / 2;
+                  const largura = d.w ?? d.width ?? 0;
+                  const altura = d.h ?? d.height ?? 0;
+                  const cx = largura / 2;
+                  const cy = altura / 2;
                   const mundoX = (cx - t.dx) / t.scale;
                   const mundoY = (cy - t.dy) / t.scale;
                   s.setPlanView2DTransform({ scale: 1, dx: cx - mundoX, dy: cy - mundoY });

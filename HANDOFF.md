@@ -6,6 +6,21 @@ Registro que atravessa o zip. **Quem trabalhar, atualiza aqui antes de exportar.
 
 ## Rodada atual
 
+### Correção de erros de compilação e limpeza de estrutura (Vite/TypeScript)
+Sintoma: Falhas no recarregamento Vite / TypeScript acusando ausência de `Pt` em `intersection.ts`, tipagem de ícones e dimensões em `BarraSuperior.tsx`, tipagem em `ProductionStudio.tsx` e duplicação indevida de arquivos na raiz de `/app`.
+Causa: 
+1. `app/src/lib/intersection.ts`: Funções de fillete (`cruzaSegSegFB`, `offSegsFB`, `refina`, `escolherBordoRamo`) usavam a anotação inexistente `Pt` em vez de `Pt2`. Como `store.ts` consome `intersection.ts`, a quebra impedia a compilação de múltiplos componentes (`App.tsx`, `BarraSuperior.tsx`, `SectionView.tsx`, `PlanView3D.tsx`, `UnifiedProfileSuperView.tsx`).
+2. `app/src/components/BarraSuperior.tsx`: Prop `icone: React.ElementType` gerava erro de tipagem no React 19 em elementos com propriedades `size` e `className` (`never`), e leitura de `planViewDimensions.width` em objeto com formato `{ w, h }`.
+3. `app/src/components/ProductionStudio.tsx`: Inferência de `n` como `unknown` no reduce de membros de base.
+4. `/app`: Presença de duplicatas espúrias fora de `/app/src/` violando a Regra de Ouro da Fonte Única.
+Correção:
+- Corrigidas as tipagens em `intersection.ts` (`Pt` -> `Pt2`), `BarraSuperior.tsx` e `ProductionStudio.tsx`.
+- Removidas as cópias órfãs na pasta `/app` mantendo apenas `loader.js`, `manifest.json` e a pasta `src/`.
+- Sincronizado o `app/manifest.json` via `npm run sync`.
+- Verificação completa aprovada em `npm run typecheck` e `npm run build`.
+
+---
+
 ### Casamento do fillete com a faixa de mudança de velocidade
 Sintoma: O fillete de interseção na alça (e em ramos esconsos) conectava-se ao bordo normal (estreito) da via principal, ignorando o taper da faixa de aceleração/desaceleração.
 Causa: O cálculo da tangência nominal (`staTang`) assumia uma interseção de 90° (somando apenas a largura da faixa do ramo + o raio). Em ângulos rasos (esconsidade de alça), a tangência física caía muito depois do ponto estimado. Como a geometria da faixa só sustentava a largura total até a `staTang` estimada, a seção caía a zero no ponto real de tangência, forçando a concordância com o bordo normal.
