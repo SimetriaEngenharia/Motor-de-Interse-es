@@ -11,6 +11,7 @@ import {
 } from "../store";
 import { ALIGNMENT_LENGTH, distancePointToSegment, lineIntersection } from "../lib/utils";
 import { buildIntersectionPolygon, findBordoCrossings, makePavementTest, resolverNarizes, narizKey, rotuloNF, casarFilleteComBordos, escolherBordoRamo, mainEhT1DoEdge, hashNTs } from "../lib/intersection";
+import { arestaDoQuadranteMorto, tokenQuadranteVivo } from "../lib/galho";
 
 /* Última assinatura publicada do mapa de NTs. Comparar por JSON.stringify usa
  * precisão de float: o NT é recalculado a cada render e oscila em frações de
@@ -5711,6 +5712,27 @@ export function PlanView({ className }: { className?: string }) {
               radiusConfigBase,
             );
             intEdgesBase = resBase.edges;
+
+            /* ALÇA: o quadrante descartado não existe. Mesmo filtro do store — a
+             * planta constrói o polígono uma segunda vez, em coordenadas de tela,
+             * e sem isto a linha preta do gore reaparecia só no desenho. Os NTs
+             * daquele lado também saem: o nariz é encontro de dois braços, e um
+             * deles deixou de existir. */
+            if (int.galho?.topologia === "alca") {
+              const morta = (e: any) =>
+                arestaDoQuadranteMorto(String(e.id), int.galho?.sentido);
+              intEdges = intEdges.filter((e) => !morta(e));
+              intEdgesBase = intEdgesBase.filter((e) => !morta(e));
+              const vivo = tokenQuadranteVivo(int.galho?.sentido);
+              narizesNT = narizesNT.filter(
+                (n) =>
+                  !(
+                    (n.armA === "B-Arm" || n.armB === "B-Arm") &&
+                    n.armA !== vivo &&
+                    n.armB !== vivo
+                  ),
+              );
+            }
 
             /* BORDO-COM-BORDO NA PLANTA.
              *

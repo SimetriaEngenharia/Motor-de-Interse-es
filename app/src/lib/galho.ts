@@ -58,6 +58,33 @@ export function regimeDoAngulo(angulo: number): RegimeGalho {
   return "gore";
 }
 
+/** Token do braço da principal cujo quadrante SOBREVIVE na alça.
+ *
+ * Os tokens são absolutos: não dependem do lado do galho. Quem SAI da principal
+ * contorna o canto entre o braço de trás e o ramo (M-Back); quem ENTRA vem do
+ * ramo e funde no braço da frente (M-Fwd). O espelhamento esquerda/direita troca
+ * o giro, não o par de braços. Uma regra só, lida por todos os consumidores —
+ * quadrante, aresta e nariz têm de concordar sobre qual lado vive. */
+export function tokenQuadranteVivo(sentido?: "entrada" | "saida"): "M-Fwd" | "M-Back" {
+  return sentido === "saida" ? "M-Back" : "M-Fwd";
+}
+
+/** A aresta do quadrante que NÃO existe na alça.
+ *
+ * É a "linha preta" que atravessa o gore: a perna do fillete do lado descartado.
+ * Os narizes dela são cruzamentos com uma aresta que não deveria existir, então
+ * removida a aresta eles caem sozinhos — não há o que apagar em separado.
+ *
+ * Só as duas arestas que tocam o ramo são candidatas; a que liga os dois braços
+ * da principal (`M-Fwd-M-Back`) é o bordo oposto e fica intacta. */
+export function arestaDoQuadranteMorto(
+  edgeId: string,
+  sentido?: "entrada" | "saida",
+): boolean {
+  if (!edgeId.includes("B-Arm")) return false;
+  return !edgeId.includes(tokenQuadranteVivo(sentido));
+}
+
 export interface AvisoGalho {
   nivel: "erro" | "aviso";
   texto: string;
